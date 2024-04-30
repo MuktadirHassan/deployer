@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os/exec"
 	"time"
 
 	"os"
@@ -179,4 +180,24 @@ func generateComposeFile(project, version string) {
 	logger.Debug("Generated compose file\n")
 	fmt.Println(string(newFileContents))
 
+	// Write to docker-compose file
+	runShellCmd(fmt.Sprintf("echo '%s' > docker-compose.yml", string(newFileContents)))
+	runShellCmd(fmt.Sprintf("docker stack deploy -c docker-compose.yml %s", project))
+
+}
+
+func runShellCmd(command string) {
+	logger.Debugf("Running command: %s", command)
+
+	// Run command
+	cmd := exec.Command("sh", "-c", command)
+
+	out, err := cmd.CombinedOutput()
+
+	if err != nil {
+		logger.Errorf(fmt.Sprint(err) + ": \n" + string(out))
+		return
+	}
+
+	logger.Debugf("Command output: %s", string(out))
 }
