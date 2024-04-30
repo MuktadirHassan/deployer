@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"time"
 
 	"os"
@@ -25,15 +26,16 @@ func main() {
 	logger.Debug("Welcome to deployer!")
 
 	// Parse flags
-	project := flag.String("project", "", "Project to deploy")
-	version := flag.String("version", "", "Version to deploy")
-	rollback := flag.Bool("rollback", false, "Rollback to previous version")
+	project := flag.String("p", "", "Project to deploy")
+	version := flag.String("v", "", "Version to deploy")
+	rollback := flag.Bool("r", false, "Rollback to previous version")
 
 	flag.Parse()
 
-	logger.Debug("Project: ", *project)
-	logger.Debug("Version: ", *version)
-	logger.Debug("Rollback: ", *rollback)
+	logger.Debug("________Flags: %v________")
+	logger.Debugf("Project: %s", *project)
+	logger.Debugf("Version: %s", *version)
+	logger.Debugf("Rollback: %t", *rollback)
 
 	if *project == "" {
 		logger.Error("Project is required")
@@ -63,12 +65,10 @@ if no rollback, call deploy func
 */
 
 func deploy(project, version string) {
-	logger.Debug("Deploying project: ", project, " version: ", version)
-
+	logger.Debug(fmt.Sprintf("Deploying project: %s version: %s", project, version))
 }
 
 func rollbackVersion(project, version string) {
-	logger.Debug("Rolling back project: ", project, " version: ", version)
 }
 
 type ComposeFile struct {
@@ -95,7 +95,6 @@ type Volume struct {
 }
 
 func generateComposeFile(project, version string) {
-	logger.Debug("Generating compose file for project: ", project, " version: ", version)
 
 	// Generate compose file with project and version
 	composeFile := ComposeFile{
