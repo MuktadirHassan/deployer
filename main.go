@@ -51,15 +51,6 @@ func main() {
 	}
 }
 
-/**
-deployer --project=backend --version=1.2.3
-deployer --project=frontend --rollback=true --version=1.2.2
-
-Parse inputs -> get value of project, rollback, version etc
-if no rollback, call deploy func
-
-*/
-
 func deploy(project, version string) {
 	logger.Debug(fmt.Sprintf("Deploying project: %s version: %s", project, version))
 	generateComposeFile(project, version)
@@ -129,8 +120,8 @@ var ComposeTemplate = `
 version : "3.8"
 
 services:
-  service1:
-    image: image1
+  service:
+    image: programminghero1/prod-neptune-web-backend
     ports: 
       - "5000:5000"
     deploy:
@@ -162,13 +153,14 @@ func generateComposeFile(project, version string) {
 		return
 	}
 
-	logger.Debug("Parsed compose template\n")
+	logger.Debug("Parsed compose template")
 
-	// Update service name
-	for serviceName := range composeFileData.Services {
+	// Update service names
+	for serviceName, service := range composeFileData.Services {
 		newServiceName := fmt.Sprintf("%s-%s", project, serviceName)
-		composeFileData.Services[newServiceName] = composeFileData.Services[serviceName]
+		logger.Debug(fmt.Sprintf("Updating service name from %s to %s", serviceName, newServiceName))
 		delete(composeFileData.Services, serviceName)
+		composeFileData.Services[newServiceName] = service
 	}
 
 	// Update image version
