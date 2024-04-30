@@ -1,12 +1,10 @@
 version : "3.8"
 
 services:
-  backend:
-    image: backend
+  service1:
+    image: image1
     ports: 
       - "5000:5000"
-    networks:
-      - mynetwork
     deploy:
       replicas: 2
       update_config:
@@ -14,7 +12,13 @@ services:
         delay: 10s
       restart_policy:
         condition: on-failure
+        delay: 3s
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "1G"
+        reservations:
+          cpus: "0.5"
+          memory: "500M"
 
-networks:
-  mynetwork:
-    driver: overlay
+
