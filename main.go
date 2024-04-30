@@ -32,11 +32,7 @@ func main() {
 
 	flag.Parse()
 
-	logger.Debug("________Flags: %v________")
-	logger.Debugf("Project: %s", *project)
-	logger.Debugf("Version: %s", *version)
-	logger.Debugf("Rollback: %t", *rollback)
-
+	// Validate inputs
 	if *project == "" {
 		logger.Error("Project is required")
 		return
@@ -66,6 +62,7 @@ if no rollback, call deploy func
 
 func deploy(project, version string) {
 	logger.Debug(fmt.Sprintf("Deploying project: %s version: %s", project, version))
+	generateComposeFile(project, version)
 }
 
 func rollbackVersion(project, version string) {
@@ -101,21 +98,8 @@ func generateComposeFile(project, version string) {
 		Version: "3",
 		Services: map[string]Service{
 			project: {
-				Image:       project + ":" + version,
-				Ports:       []string{"8080:8080"},
-				Environment: []string{"ENV=PROD"},
-				Networks:    []string{"default"},
-				Volumes:     []string{"./" + project + "/data:/data"},
-			},
-		},
-		Networks: map[string]Network{
-			"default": {
-				Driver: "bridge",
-			},
-		},
-		Volumes: map[string]Volume{
-			"./" + project + "/data": {
-				Driver: "local",
+				Image: project + ":" + version,
+				Ports: []string{"8080:8080"},
 			},
 		},
 	}
@@ -126,6 +110,7 @@ func generateComposeFile(project, version string) {
 		return
 	}
 
-	logger.Debug("Compose file: ", string(d))
+	logger.Debug("Generated compose file:\n")
+	fmt.Println(string(d))
 
 }
