@@ -15,23 +15,31 @@ import (
 var logger *log.Logger
 
 func main() {
-	// Setup logger
-	logger = log.NewWithOptions(os.Stderr, log.Options{
-		ReportCaller:    true,
-		ReportTimestamp: true,
-		TimeFormat:      time.DateTime,
-		Prefix:          "🎵",
-		Level:           log.DebugLevel,
-	})
+	isDebug := flag.Bool("debug", false, "Enable debug mode")
 
-	logger.Info("Welcome to deployer!")
+	var logLevel log.Level
+	if *isDebug {
+		logLevel = log.DebugLevel
+	} else {
+		logLevel = log.InfoLevel
+	}
 
 	// Parse flags
 	project := flag.String("p", "", "Project to deploy")
 	version := flag.String("v", "", "Version to deploy")
 	rollback := flag.Bool("r", false, "Rollback to previous version")
-
 	flag.Parse()
+
+	// Setup logger
+	logger = log.NewWithOptions(os.Stderr, log.Options{
+		ReportCaller:    *isDebug,
+		ReportTimestamp: true,
+		TimeFormat:      time.DateTime,
+		Prefix:          "🎵",
+		Level:           logLevel,
+	})
+
+	logger.Info("Welcome to deployer!")
 
 	// Validate inputs
 	if *project == "" {
@@ -45,10 +53,11 @@ func main() {
 	}
 
 	// Deploy
-	if !*rollback {
-		deploy(*project, *version)
-	} else {
+	switch {
+	case *rollback:
 		rollbackVersion(*project, *version)
+	default:
+		deploy(*project, *version)
 	}
 }
 
@@ -58,6 +67,7 @@ func deploy(project, version string) {
 }
 
 func rollbackVersion(project, version string) {
+	logger.Debugf("Rolling back project: %s to version: %s", project, version)
 }
 
 type ComposeFile struct {
@@ -181,12 +191,23 @@ func generateComposeFile(project, version string) {
 	fmt.Println(string(newFileContents))
 
 	// Write to docker-compose file
-	runShellCmd(fmt.Sprintf("echo '%s' > docker-compose.yml", string(newFileContents)))
-	runShellCmd(fmt.Sprintf("docker stack deploy -c docker-compose.yml %s", project))
+	out, err := runShellCmd(fmt.Sprintf("echo '%s' > docker-compose.yml", string(newFileContents)))
+	if err != nil {
+		logger.Errorf(fmt.Sprint(err) + ": \n" + string(out))
+		return
+	}
+	out, err = runShellCmd(fmt.Sprintf("docker stack deploy -c docker-compose.yml %s", project))
+	if err != nil {
+		logger.Errorf(fmt.Sprint(err) + ": \n" + string(out))
+		return
+	} else {
+		logger.Debug(string(out))
+	}
 
+	logger.Info("Deployed successfully")
 }
 
-func runShellCmd(command string) {
+func runShellCmd(command string) ([]byte, error) {
 	logger.Debugf("Running command: %s", command)
 
 	// Run command
@@ -194,10 +215,5 @@ func runShellCmd(command string) {
 
 	out, err := cmd.CombinedOutput()
 
-	if err != nil {
-		logger.Errorf(fmt.Sprint(err) + ": \n" + string(out))
-		return
-	}
-
-	logger.Debugf("Command output: %s", string(out))
+	return out, err
 }
