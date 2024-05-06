@@ -176,7 +176,7 @@ func generateComposeFile(project, version string) {
 
 	// Update image version
 	for serviceName, service := range composeFileData.Services {
-		service.Image = fmt.Sprintf("%s:%s", service.Image, version)
+		service.Image = fmt.Sprintf("%s:v%s", service.Image, version)
 		composeFileData.Services[serviceName] = service
 	}
 

@@ -1,0 +1,46 @@
+version: "3.8"
+services:
+    neptune-backend-service:
+        image: programminghero1/prod-neptune-web-backend:v1.1.0
+        ports:
+            - 8080:8080
+        env_file: 
+            .env
+        networks: 
+            - backend
+        deploy:
+            replicas: 1
+            resources:
+                limits:
+                    cpus: "0.5"
+                    memory: 1G
+                reservations:
+                    cpus: "0.5"
+                    memory: 500M
+            update_config:
+                parallelism: 1
+                delay: 30s
+            restart_policy:
+                condition: on-failure
+                delay: 3s
+
+    redis:
+        image: redis:7.2.4-alpine
+        ports:
+        - 6379:6379
+        volumes:
+        - redis-dev-data:/data
+        command: sh -c "redis-server --appendonly yes"
+        networks: 
+            - backend
+        deploy:
+            replicas: 1
+            restart_policy:
+                condition: on-failure
+
+networks: 
+    backend:
+        driver: overlay
+
+volumes: 
+    redis-dev-data:
