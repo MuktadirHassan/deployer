@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/MuktadirHassan/deployer/compare/v1.1.0...v1.2.0) (2024-05-06)
+
+
+### Features
+
+* Update docker-compose.yml for neptune-backend-service ([5e366de](https://github.com/MuktadirHassan/deployer/commit/5e366decccd5d2d13e59432af4ce93a32d79de18))
+
 ## [1.1.0](https://github.com/MuktadirHassan/deployer/compare/v1.0.0...v1.1.0) (2024-04-30)
 
 
